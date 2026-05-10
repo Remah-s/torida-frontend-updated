@@ -382,7 +382,8 @@ export async function runInterceptorTests(): Promise<ApiTestResult[]> {
       if (typeof response !== 'object' || response === null) {
         throw new Error('Response is not an object');
       }
-      const resp = response as Record<string, unknown>;
+      // FIX: cast through unknown first to satisfy TypeScript
+      const resp = response as unknown as Record<string, unknown>;
       if (resp.success === undefined) {
         throw new Error('Response missing "success" field — interceptor may not be unwrapping correctly');
       }
@@ -450,7 +451,8 @@ export async function runResponseFormatTests(): Promise<ApiTestResult[]> {
       if (!validation.valid) {
         throw new Error(`Invalid response format: ${validation.error}`);
       }
-      const resp = response as Record<string, unknown>;
+      // FIX: cast through unknown first to satisfy TypeScript
+      const resp = response as unknown as Record<string, unknown>;
       console.log('  └─ ✓ success:', resp.success);
       console.log('  └─ ✓ data:', Array.isArray(resp.data) ? `Array[${(resp.data as unknown[]).length}]` : typeof resp.data);
       console.log('  └─ ✓ message:', resp.message || '(none)');
