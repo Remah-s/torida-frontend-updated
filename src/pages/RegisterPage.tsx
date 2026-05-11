@@ -95,7 +95,7 @@ const RegisterPage: React.FC = () => {
         type_id: typeId,
         gov_id: govId,
       });
-      navigate('/verify-otp');
+      navigate(`/verify-otp?email=${encodeURIComponent(email)}`);
     } catch (err) {
       if (err instanceof ApiError && err.isValidationError && err.errors) {
         const fieldErrors: Record<string, string> = {};

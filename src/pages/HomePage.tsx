@@ -111,13 +111,27 @@ const HomePage: React.FC = () => {
       try {
         setLoading(true);
         const [categoriesData, productsData] = await Promise.all([
-          categoryService.getCategories(true),
-          productService.getProducts({ per_page: 4, is_active: 'true' }),
+          categoryService.getCategories(true).catch((err) => {
+            console.error('Failed to load categories:', err);
+            return [];
+          }),
+          productService.getProducts({ per_page: 4, is_active: 'true' }).catch((err) => {
+            console.error('Failed to load products:', err);
+            return { items: [], pagination: null };
+          }),
         ]);
-        setCategories(categoriesData.slice(0, 6));
-        setFeaturedProducts(productsData.items?.slice(0, 4) || []);
+
+        // Defensive: ensure categoriesData is always an array
+        const safeCategories = Array.isArray(categoriesData) ? categoriesData : [];
+        setCategories(safeCategories.slice(0, 6));
+
+        // Defensive: ensure productsData.items is always an array
+        const safeItems = Array.isArray(productsData?.items) ? productsData.items : [];
+        setFeaturedProducts(safeItems.slice(0, 4));
       } catch (err) {
         console.error('Failed to load homepage data:', err);
+        setCategories([]);
+        setFeaturedProducts([]);
       } finally {
         setLoading(false);
       }

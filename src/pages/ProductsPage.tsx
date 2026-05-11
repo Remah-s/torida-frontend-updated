@@ -70,8 +70,10 @@ const ProductsPage: React.FC = () => {
         sort_by: sortBy,
         sort_order: sortOrder as 'asc' | 'desc',
       });
-      setProducts(result.items || []);
-      setPagination(result.pagination || null);
+       // Defensive: ensure items is always an array
+        const items = Array.isArray(result?.items) ? result.items : [];
+        setProducts(items);
+        setPagination(result?.pagination || null);
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : 'Failed to load products';
       toast.error(msg);

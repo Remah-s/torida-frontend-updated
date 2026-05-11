@@ -32,6 +32,54 @@ export const userService = {
     );
   },
 
+  // ─── Get All Suppliers (Supplier + Company types) ────────
+  // Fetches users with type_id=1 (Supplier) AND type_id=3 (Company)
+  // in parallel, merges and deduplicates by ID.
+  //
+  async getSuppliers(perPage = 100): Promise<PaginatedData<User>> {
+    // Fetch both seller user types in parallel
+    const [suppliersResult, companiesResult] = await Promise.all([
+      this.getUsers({ type_id: 1, per_page: perPage }).catch((err) => {
+        console.warn('[UserService] Failed to fetch type_id=1 suppliers:', err);
+        return { items: [] as User[], pagination: null } as any;
+      }),
+      this.getUsers({ type_id: 3, per_page: perPage }).catch((err) => {
+        console.warn('[UserService] Failed to fetch type_id=3 companies:', err);
+        return { items: [] as User[], pagination: null } as any;
+      }),
+    ]);
+
+    const supplierItems = Array.isArray(suppliersResult?.items) ? suppliersResult.items : [];
+    const companyItems = Array.isArray(companiesResult?.items) ? companiesResult.items : [];
+
+    // Debug logging
+    console.log(`[UserService] getSuppliers: type_id=1 returned ${supplierItems.length}, type_id=3 returned ${companyItems.length}`);
+
+    // Merge and deduplicate by user ID
+    const seen = new Set<number>();
+    const merged: User[] = [];
+    for (const user of [...supplierItems, ...companyItems]) {
+      if (user?.id && !seen.has(user.id)) {
+        seen.add(user.id);
+        merged.push(user);
+      }
+    }
+
+    console.log(`[UserService] getSuppliers: ${merged.length} unique suppliers after merge`);
+
+    return {
+      items: merged,
+      pagination: {
+        page: 1,
+        per_page: merged.length,
+        total_items: merged.length,
+        total_pages: 1,
+        has_next: false,
+        has_prev: false,
+      },
+    };
+  },
+
   // ─── Get User by ID ─────────────────────────────────────
   // GET /api/users/:user_id
   //

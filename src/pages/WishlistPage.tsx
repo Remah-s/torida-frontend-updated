@@ -30,7 +30,9 @@ const WishlistPage: React.FC = () => {
 
   useEffect(() => {
     if (wishlistData) {
-      setWishlistItems(wishlistData.items || []);
+      // Defensive: ensure items is always an array
+      const items = Array.isArray(wishlistData?.items) ? wishlistData.items : [];
+      setWishlistItems(items);
     }
   }, [wishlistData]);
 

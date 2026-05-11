@@ -17,7 +17,13 @@ export const categoryService = {
   async getCategories(includeCount = false): Promise<Category[]> {
     const qs = includeCount ? '?include_count=true' : '';
     const response = await api.get<Category[]>(`/categories${qs}`);
-    return response.data;
+    // Defensive: ensure we always return an array
+    const data = response.data;
+    if (Array.isArray(data)) return data;
+    if (Array.isArray((data as any)?.items)) return (data as any).items;
+    if (Array.isArray((data as any)?.data)) return (data as any).data;
+    console.warn('[CategoryService] getCategories: unexpected response shape', data);
+    return [];
   },
 
   // ─── Get Category by ID ─────────────────────────────────

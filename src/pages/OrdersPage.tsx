@@ -51,7 +51,9 @@ const OrdersPage: React.FC = () => {
 
   useEffect(() => {
     if (ordersData) {
-      setOrders(ordersData.items || []);
+      // Defensive: ensure items is always an array
+      const items = Array.isArray(ordersData?.items) ? ordersData.items : [];
+      setOrders(items);
     }
   }, [ordersData]);
 

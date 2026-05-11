@@ -89,7 +89,9 @@ const CategoryDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (productsData) {
-      setProducts(productsData.items || []);
+      // Defensive: ensure items is always an array
+      const items = Array.isArray(productsData?.items) ? productsData.items : [];
+      setProducts(items);
     }
   }, [productsData]);
 

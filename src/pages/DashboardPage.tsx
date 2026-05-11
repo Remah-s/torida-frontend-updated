@@ -148,7 +148,7 @@ const DashboardPage: React.FC = () => {
               <div>
                 <p className="text-sm text-text-muted mb-1">Total Spent</p>
                 <p className="text-2xl font-bold text-text-primary">{formatCurrency(
-                  (ordersData?.items || []).reduce((acc, o) => acc + (Number(o.total_amount) || 0), 0)
+                  (Array.isArray(ordersData?.items) ? ordersData.items : []).reduce((acc, o) => acc + (Number(o.total_amount) || 0), 0)
                 )}</p>
               </div>
               <div className="h-12 w-12 rounded-xl bg-success-light flex items-center justify-center">
@@ -163,7 +163,7 @@ const DashboardPage: React.FC = () => {
               <div>
                 <p className="text-sm text-text-muted mb-1">Pending Orders</p>
                 <p className="text-2xl font-bold text-text-primary">
-                  {(ordersData?.items || []).filter(o => o.status === 'pending').length}
+                  {(Array.isArray(ordersData?.items) ? ordersData.items : []).filter(o => o.status === 'pending').length}
                 </p>
               </div>
               <div className="h-12 w-12 rounded-xl bg-warning-light flex items-center justify-center">
@@ -200,7 +200,7 @@ const DashboardPage: React.FC = () => {
                 </Link>
               </div>
               <div className="divide-y divide-border">
-                {(ordersData?.items || []).map((order) => (
+                {(Array.isArray(ordersData?.items) ? ordersData.items : []).map((order) => (
                   <Link
                     key={order.id}
                     to={`/orders/${order.id}`}

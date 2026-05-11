@@ -39,21 +39,23 @@ const SupplierDashboardPage: React.FC = () => {
 
   React.useEffect(() => {
     orderService.getOrders({ per_page: 5 }).then((result) => {
-      const orders = result.items || [];
+      const orders = Array.isArray(result?.items) ? result.items : [];
       setRecentOrders(orders);
       const totalRevenue = orders.reduce((acc: number, o: any) => acc + (parseFloat(o.total_amount) || 0), 0);
       const customers = new Set(orders.map((o: any) => o.retailer_id)).size;
 
       setStats((prev) => [
         { ...prev[0], value: `E£${totalRevenue}` },
-        { ...prev[1], value: String(result.pagination.total_items || 0) },
+        { ...prev[1], value: String(result?.pagination?.total_items || result?.pagination?.total || orders.length) },
         prev[2],
         { ...prev[3], value: String(customers) },
       ]);
-    }).catch(console.error);
+    }).catch((err) => {
+      console.error('[SupplierDashboard] Failed to load orders:', err);
+    });
 
     productService.getProducts({ per_page: 100 }).then((response) => {
-      const prods = response.items || [];
+      const prods = Array.isArray(response?.items) ? response.items : [];
       setTopProducts(prods.slice(0, 3));
       setLowStockProducts(prods.filter((p: any) => p.stock_quantity < 50).slice(0, 3));
       setStats((prev) => [
@@ -62,7 +64,9 @@ const SupplierDashboardPage: React.FC = () => {
         { ...prev[2], value: String(prods.filter((p: any) => p.is_active).length) },
         prev[3],
       ]);
-    }).catch(console.error);
+    }).catch((err) => {
+      console.error('[SupplierDashboard] Failed to load products:', err);
+    });
   }, []);
   const getStatusColor = (status: string) => {
     switch (status) {

@@ -86,7 +86,21 @@ const VerifyOTPPage: React.FC = () => {
         navigate('/login');
       }, 2000);
     } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to verify OTP. Please try again.');
+      console.error('[VerifyOTP] Verification error:', err);
+
+      // Check if it's a network error (status 0) — the backend may have
+      // actually processed the OTP successfully but the response was lost.
+      if (err?.code === 'NETWORK_ERROR' || err?.status === 0) {
+        setError(
+          'A network issue occurred, but your verification may have succeeded. ' +
+          'Please try logging in. If it fails, come back and try again.'
+        );
+      } else if (err?.status >= 400 && err?.status < 500) {
+        // Genuine client error from the backend (wrong OTP, expired, etc.)
+        setError(err?.message || 'Invalid or expired verification code. Please try again.');
+      } else {
+        setError(err?.message || 'Failed to verify OTP. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

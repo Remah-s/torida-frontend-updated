@@ -81,17 +81,36 @@ export const authService = {
   },
 
   // ─── Verify Email with OTP ───────────────────────────────
-  // POST /api/auth/verify-email — 🔒 Auth Required
+  // POST /api/auth/verify-otp — Public / 🔒 Auth
   //
   async verifyOtp(email: string, otp: string): Promise<void> {
-    await api.post('/auth/verify-otp', { email, otp });
+    try {
+      const response = await api.post('/auth/verify-otp', { email, otp });
+      console.log('[Auth] OTP verification response:', response);
+      // If we reach here, verification succeeded
+    } catch (err: any) {
+      console.error('[Auth] OTP verification error:', err);
+      // Re-throw only if it's a genuine server error, not a network hiccup
+      // after the server already processed the request
+      if (err?.status && err.status >= 400 && err.status < 500) {
+        throw err;
+      }
+      // For network errors (status 0) or 5xx, the OTP may have actually succeeded
+      // on the server. Let the caller decide how to handle this.
+      throw err;
+    }
   },
 
   // ─── Resend Verification OTP ─────────────────────────────
-  // POST /api/auth/resend-otp — 🔒 Auth Required
+  // POST /api/auth/resend-otp — Public / 🔒 Auth
   //
   async resendVerificationOtp(email: string): Promise<void> {
-    await api.post('/auth/resend-otp', { email });
+    try {
+      await api.post('/auth/resend-otp', { email });
+    } catch (err: any) {
+      console.error('[Auth] Resend OTP error:', err);
+      throw err;
+    }
   },
 
   // ─── Forgot Password ────────────────────────────────────

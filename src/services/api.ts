@@ -185,6 +185,17 @@ class ApiService {
   // ── Error Normalisation ──────────────────────────────────
 
   private normaliseError(error: AxiosError<ApiErrorResponse>): ApiError {
+    // Log for debugging in development
+    if (import.meta.env.DEV) {
+      console.error('[API Error]', {
+        url: error.config?.url,
+        method: error.config?.method,
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+    }
+
     if (error.response) {
       const { data, status } = error.response;
       let message = data?.message || data?.error || error.message || 'An unexpected error occurred';
@@ -202,7 +213,7 @@ class ApiService {
 
     if (error.request) {
       return new ApiError(
-        'Network error — please check your connection',
+        'Network error — please check your connection and try again.',
         0,
         'NETWORK_ERROR'
       );
@@ -222,9 +233,31 @@ class ApiService {
 
   async getPaginated<T>(url: string, config?: AxiosRequestConfig): Promise<import('@/types').PaginatedData<T>> {
     const response = await this.instance.get(this.normalizeUrl(url), config);
+    const raw = response.data;
+
+    // Defensive: extract items array from various response shapes
+    let items: T[];
+    if (Array.isArray(raw?.data)) {
+      items = raw.data;
+    } else if (Array.isArray(raw?.items)) {
+      items = raw.items;
+    } else if (Array.isArray(raw)) {
+      items = raw;
+    } else {
+      console.warn('[API] getPaginated: unexpected response shape, defaulting items to []', raw);
+      items = [];
+    }
+
     return {
-      items: response.data.data,
-      pagination: response.data.pagination,
+      items,
+      pagination: raw?.pagination ?? {
+        page: 1,
+        per_page: items.length,
+        total_items: items.length,
+        total_pages: 1,
+        has_next: false,
+        has_prev: false,
+      },
     };
   }
 
