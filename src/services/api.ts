@@ -236,12 +236,23 @@ class ApiService {
     const raw = response.data;
 
     // Defensive: extract items array from various response shapes
+    // Backend typically returns: { success, data: { items: [...], pagination: {...} } }
     let items: T[];
-    if (Array.isArray(raw?.data)) {
+    let pagination = null;
+
+    if (Array.isArray(raw?.data?.items)) {
+      // Shape: { data: { items: [...], pagination: {...} } }
+      items = raw.data.items;
+      pagination = raw.data.pagination ?? null;
+    } else if (Array.isArray(raw?.data)) {
+      // Shape: { data: [...] }
       items = raw.data;
     } else if (Array.isArray(raw?.items)) {
+      // Shape: { items: [...], pagination: {...} }
       items = raw.items;
+      pagination = raw.pagination ?? null;
     } else if (Array.isArray(raw)) {
+      // Shape: [...]
       items = raw;
     } else {
       console.warn('[API] getPaginated: unexpected response shape, defaulting items to []', raw);
@@ -250,7 +261,7 @@ class ApiService {
 
     return {
       items,
-      pagination: raw?.pagination ?? {
+      pagination: pagination ?? raw?.pagination ?? {
         page: 1,
         per_page: items.length,
         total_items: items.length,

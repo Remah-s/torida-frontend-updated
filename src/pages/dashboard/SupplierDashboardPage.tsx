@@ -46,7 +46,7 @@ const SupplierDashboardPage: React.FC = () => {
 
       setStats((prev) => [
         { ...prev[0], value: `E£${totalRevenue}` },
-        { ...prev[1], value: String(result?.pagination?.total_items || result?.pagination?.total || orders.length) },
+        { ...prev[1], value: String(result?.pagination?.total_items || orders.length) },
         prev[2],
         { ...prev[3], value: String(customers) },
       ]);

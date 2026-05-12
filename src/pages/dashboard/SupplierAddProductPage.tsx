@@ -25,7 +25,7 @@ const SupplierAddProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
   const navigate = useNavigate();
-  const [categories, setCategories] = useState<{ value: string; label: string }[]>([{ value: '', label: 'Select category' }]);
+  const [categories, setCategories] = useState<{ value: string; label: string }[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [pricingTiers, setPricingTiers] = useState([
@@ -60,8 +60,9 @@ const SupplierAddProductPage: React.FC = () => {
           stock: String(product.stock_quantity || ''),
           unit: 'kg',
         });
-        if (prod.images && prod.images.length > 0) {
-          setImages(prod.images.map((img: any) => img.image_url));
+        const prodImages = Array.isArray((prod as any)?.images) ? (prod as any).images : [];
+        if (prodImages.length > 0) {
+          setImages(prodImages.map((img: any) => img.image_url || ''));
         }
       }).catch(console.error);
     }
@@ -69,10 +70,10 @@ const SupplierAddProductPage: React.FC = () => {
 
   React.useEffect(() => {
     categoryService.getCategories().then((res) => {
-      setCategories([
-        { value: '', label: 'Select category' },
-        ...res.map((c: any) => ({ value: String(c.id), label: c.category_name }))
-      ]);
+      const cats = Array.isArray(res) ? res : [];
+      setCategories(
+        cats.map((c: any) => ({ value: String(c.id || ''), label: c.category_name || 'Unnamed' })).filter(c => c.value !== '')
+      );
     }).catch(console.error);
   }, []);
 
@@ -155,9 +156,10 @@ const SupplierAddProductPage: React.FC = () => {
                       <div>
                         <label className="block text-sm font-medium mb-2">Category *</label>
                         <SimpleSelect
-                          value={formData.category}
+                          value={formData.category || undefined}
                           onChange={(value: string) => setFormData({ ...formData, category: value })}
                           options={categories}
+                          placeholder="Select category"
                         />
                       </div>
                     </div>
